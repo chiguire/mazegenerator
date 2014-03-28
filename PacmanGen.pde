@@ -1,6 +1,8 @@
  //<>//
 
 PacmanMap leMap;
+PacmanPlayer lePlayer;
+
 PFont f;
 color wallColor;
 color pelletColor;
@@ -14,9 +16,13 @@ void setup() {
   randomSeed(millis());
   leMap = new PacmanMap();
   leMap.generate();
-  background(255);
   
-  //println(getStringFromTiles(leMap.tileMap));
+  if (leMap.tileMap != null) {
+    println(getStringFromTiles(leMap.tileMap));
+  } else {
+    println(getStringFromTiles(leMap.getTileMap()));
+  }
+  lePlayer = new PacmanPlayer(leMap.tileMap, tileLength);
   
   wallColor = color(127+random(126), 127+random(126), 127+random(126), 255);
   pelletColor = color(255, 204, 0, 255);
@@ -27,6 +33,9 @@ void setup() {
 }
 
 void draw() {
+  
+  lePlayer.update();
+  
   clear();
   background(255);
   fill(0);
@@ -40,12 +49,15 @@ void draw() {
   drawCellMap(leMap.getCellMap());
   popMatrix();
   
+  pushMatrix();
   translate(335, 30);
   if (leMap.tileMap != null) {
     drawTileMap(leMap.tileMap, wallColor, pelletColor, energizerColor, false);
   } else {
     drawTileMap(leMap.getTileMap(), wallColor, pelletColor, energizerColor, false);
   }
+  drawLePlayer(lePlayer.position, lePlayer.facing);
+  popMatrix();
 }
 
 void drawCellMap(Cell[][] cellMap) {
@@ -394,7 +406,7 @@ String getStringFromTiles(Tile[][] tileMap) {
       String x = null;
       if (t.state == Tile.WALL) {
         x = "*";
-      } else if (t.state == Tile.BLANK) {
+      } else if (t.state == Tile.BLANK || t.state == Tile.GHOSTSPACE || t.state == Tile.PATHBLANK) {
         x = " ";
       } else if (t.state == Tile.PATH) {
         x = "·";
@@ -410,9 +422,19 @@ String getStringFromTiles(Tile[][] tileMap) {
   return s;
 }
 
+float []rotation = new float[]{ PI, PI + HALF_PI, 0, HALF_PI };
+void drawLePlayer(PVector p, int facing) {
+  pushMatrix();
+  fill(178, 178, 0, 255);
+  arc(p.x, p.y, 1.75f*tileLength, 1.75f*tileLength, HALF_PI+QUARTER_PI+rotation[facing], 2*PI+QUARTER_PI+rotation[facing], PIE);
+//  ellipse(0, 0, 2*tileLength, 2*tileLength);
+  popMatrix();
+}
+
 void mousePressed(MouseEvent e) {
   leMap.generate();
   leMap.getTileMap();
   wallColor = color(127+random(126), 127+random(126), 127+random(126), 255);
-  //println(getStringFromTiles(leMap.tileMap));
+  lePlayer = new PacmanPlayer(leMap.tileMap, tileLength);
+  println(getStringFromTiles(leMap.tileMap));
 }
